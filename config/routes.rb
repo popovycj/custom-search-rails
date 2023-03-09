@@ -3,4 +3,5 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   root "search_page#index"
+  get "search", to: "search_page#index"
 end

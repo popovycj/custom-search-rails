@@ -1,26 +1,15 @@
 module Searcher::Operation
   class Search < Trailblazer::Operation
     step :parse_query
-    step :search
-
-    def parse_query(ctx, params:, **)
-      ctx[:terms] = params[:query].downcase
-                                  .scan(/"[^"]+"|'[^']+'|\S+/)
-                                  .map { |s| s.gsub(/["']/, '') }
-    end
-
-    def search(ctx, data:, terms:, **)
-      return ctx[:results] = data if terms.empty?
-
-      ctx[:results] = data.select do |language|
-        SubSearch.call(language:, terms:).success?
-      end
-    end
-  end
-
-  class SubSearch < Trailblazer::Operation
     step :define_terms
-    step :right_language?
+    step :search
+    step :order_by_relevance
+
+    def parse_query(ctx, query: '', **)
+      ctx[:terms] = query.downcase
+                         .scan(/"[^"]+"|'[^']+'|\S+/)
+                         .map { |s| s.gsub(/["']/, '') }
+    end
 
     def define_terms(ctx, terms:, **)
       ctx[:negative_terms], ctx[:positive_terms] = terms.partition do |term|
@@ -28,15 +17,46 @@ module Searcher::Operation
       end.map(&:compact)
     end
 
+    def search(ctx, data:, positive_terms:, negative_terms:, **)
+      return ctx[:results] = data if positive_terms.empty? && negative_terms.empty?
+
+      ctx[:results] = data.select do |language|
+        SubSearch.call(language:, positive_terms:, negative_terms:).success?
+      end
+    end
+
+    def order_by_relevance(ctx, results:, positive_terms:, **)
+      ctx[:results] = results.sort_by do |language|
+        count_exact_matching(language, positive_terms)
+      end.reverse
+    end
+
+    private
+
+    def count_exact_matching(language, positive_terms)
+      positive_terms.map do |term|
+        language.values.any? do |value|
+          value.downcase.match?(/(^|[\s,])#{term}([\s,]|$)/i)
+        end
+      end.count(true)
+    end
+  end
+
+  class SubSearch < Trailblazer::Operation
+    step :right_language?
+
     def right_language?(ctx, language:, positive_terms:, negative_terms:, **)
-      check_language(language, positive_terms) && !check_language(language, negative_terms)
+      conclusion = true
+
+      conclusion &&= check_language(language, positive_terms) unless positive_terms.empty?
+      conclusion &&= !check_language(language, negative_terms) unless negative_terms.empty?
+
+      conclusion
     end
 
     private
 
     def check_language(language, terms)
-      return false if terms.empty?
-
       terms.all? do |term|
         language.values.any? do |value|
           value.downcase.include?(term.sub(/\A-/, ''))
