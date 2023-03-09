@@ -6,7 +6,7 @@ module Searcher::Operation
     step :order_by_relevance
 
     def parse_query(ctx, query: '', **)
-      ctx[:terms] = query.downcase
+      ctx[:terms] = query.to_s.downcase
                          .scan(/"[^"]+"|'[^']+'|\S+/)
                          .map { |s| s.gsub(/["']/, '') }
     end
@@ -21,7 +21,7 @@ module Searcher::Operation
       return ctx[:results] = data if positive_terms.empty? && negative_terms.empty?
 
       ctx[:results] = data.select do |language|
-        SubSearch.call(language:, positive_terms:, negative_terms:).success?
+        SubSearch.wtf?(language:, positive_terms:, negative_terms:).success?
       end
     end
 
