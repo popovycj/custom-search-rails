@@ -8,12 +8,15 @@ function App() {
   const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const { data } = await axios.get(`/search.json?query=${searchTerm}`);
-      setSearchResults(data);
-    };
+    const delayDebounceFn = setTimeout(() => {
+      const fetchData = async () => {
+        const { data } = await axios.get(`/search.json?query=${searchTerm}`);
+        setSearchResults(data);
+      };
+      fetchData();
+    }, 200);
 
-    fetchData();
+    return () => clearTimeout(delayDebounceFn);
   }, [searchTerm]);
 
   const handleInputChange = (event) => {
