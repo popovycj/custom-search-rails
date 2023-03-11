@@ -1,8 +1,6 @@
 class SearchPageController < ApplicationController
   def index
-    data = Rails.cache.fetch('data') do
-      JSON.parse(File.read(Rails.root.join('public', 'data.json')))
-    end
+    data = JSON.parse(File.read(Rails.root.join('public', 'data.json')))
 
     @results = Searcher::Operation::Search.wtf?(query: params[:query], data:)[:results]
 

@@ -26,19 +26,25 @@ module Searcher::Operation
     end
 
     def order_by_relevance(ctx, results:, positive_terms:, **)
+      return ctx[:results] if positive_terms.empty?
+
       ctx[:results] = results.sort_by do |language|
-        count_exact_matching(language, positive_terms)
+        language.values.reverse.map.with_index do |value, index|
+          50**index * (count_exact_matching(value, positive_terms) * 10 + count_partial_matching(value, positive_terms))
+        end.sum
       end.reverse
     end
 
     private
 
-    def count_exact_matching(language, positive_terms)
-      positive_terms.map do |term|
-        language.values.any? do |value|
-          value.downcase.match?(/(^|[\s,])#{term}([\s,]|$)/i)
-        end
-      end.count(true)
+    def count_exact_matching(field, positive_terms)
+      regex = Regexp.new(/(^|[\s,])(#{positive_terms.join('|')})([\s,]|$)/i)
+      field.downcase.split.count { |value| value.match?(regex) }
+    end
+
+    def count_partial_matching(field, positive_terms)
+      regex = Regexp.new(/(^|[\s,-])(#{positive_terms.join('|')})/i)
+      field.downcase.split.count { |value| value.match?(regex) }
     end
   end
 
