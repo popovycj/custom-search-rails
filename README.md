@@ -30,3 +30,6 @@ Technologies that are used
 - React
 
 <hr>
+
+[Screencast from 12.03.23 13:23:45.webm](https://user-images.githubusercontent.com/109829102/224541472-e7bcee0e-7026-48e8-af9f-7930d5cd1b59.webm)
+
