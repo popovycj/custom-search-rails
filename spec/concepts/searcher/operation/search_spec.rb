@@ -131,6 +131,22 @@ RSpec.describe Searcher::Operation::Search do
 
         expect(result[:terms]).to eq(['ruby', 'on', 'rails'])
       end
+
+      it 'properly handles single quotes negative terms' do
+        ctx[:query] = "-'interpreted programming language'"
+
+        result = described_class.(ctx)
+
+        expect(result[:results]).to eq([{ name: 'Ruby', description: 'A dynamic, open source programming language' }, { name: 'Java', description: 'A class-based, object-oriented programming language' }])
+      end
+
+      it 'properly handles double quotes negative terms' do
+        ctx[:query] = '-"open source programming language"'
+
+        result = described_class.(ctx)
+
+        expect(result[:results]).to eq([{ name: 'Python', description: 'A high-level, interpreted programming language' }, { name: 'Java', description: 'A class-based, object-oriented programming language' }])
+      end
     end
 
     describe '#define_terms' do
