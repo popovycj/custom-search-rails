@@ -14,8 +14,7 @@ This app is using Rails 7.0.4, Ruby 3.2.0, Redis 7.0.7, PostgreSQL 14.3. <br>
 
 ### Tech stack
 
-If you don't like some of these choices that's no problem, you can swap them
-out for something else on your own.
+Technologies that are used
 
 #### Back-end
 
