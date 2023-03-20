@@ -10,7 +10,7 @@ function App() {
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       const fetchData = async () => {
-        const { data } = await axios.get(`/search.json?query=${searchTerm}`);
+        const { data } = await axios.get(`/search.json?query=${encodeURIComponent(searchTerm)}`);
         setSearchResults(data);
       };
       fetchData();
