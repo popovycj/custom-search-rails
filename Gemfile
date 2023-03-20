@@ -77,3 +77,5 @@ end
 
 gem 'trailblazer-rails'
 gem 'pry'
+
+gem "dockerfile-rails", ">= 1.2", :group => :development
